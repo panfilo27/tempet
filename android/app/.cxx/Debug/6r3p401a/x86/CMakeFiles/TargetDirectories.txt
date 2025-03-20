@@ -1,0 +1,2 @@
+C:/Users/chapa/Documents/Tempet/android/app/.cxx/Debug/6r3p401a/x86/CMakeFiles/edit_cache.dir
+C:/Users/chapa/Documents/Tempet/android/app/.cxx/Debug/6r3p401a/x86/CMakeFiles/rebuild_cache.dir

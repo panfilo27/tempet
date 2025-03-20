@@ -1,0 +1,2 @@
+C:/Users/chapa/Documents/tempet/android/app/.cxx/Debug/5r5u455h/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/chapa/Documents/tempet/android/app/.cxx/Debug/5r5u455h/x86_64/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "226855355055",
+    "project_id": "tempet-6a83a",
+    "storage_bucket": "tempet-6a83a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:226855355055:android:c43b54b0047de78eddca5a",
+        "android_client_info": {
+          "package_name": "com.example.tempet"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6SknZdnRXgOHdSjiCQHKEfCPqPFnTJxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
