@@ -6,54 +6,49 @@ import 'login_event.dart';
 import 'login_state.dart';
 
 /// [LoginBloc] se encarga de manejar los eventos de la pantalla de login.
-/// Los eventos que procesa son [LoginButtonPressed] para iniciar sesión
-/// y [RegisterButtonPressed] para el registro.
-/// Administra los estados: [LoginInitial], [LoginLoading], [LoginSuccess] y [LoginFailure].
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginUser loginUser;
   final RegisterUser registerUser;
 
-  /// Constructor de [LoginBloc] que inyecta los casos de uso [loginUser] y [registerUser].
   LoginBloc({
     required this.loginUser,
     required this.registerUser,
   }) : super(const LoginInitial()) {
-    // Registra el manejador para el evento de inicio de sesión.
     on<LoginButtonPressed>(_onLoginButtonPressed);
-    // Registra el manejador para el evento de registro.
     on<RegisterButtonPressed>(_onRegisterButtonPressed);
   }
 
-  /// Maneja el evento [LoginButtonPressed] que se dispara al presionar el botón de login.
-  /// - [event]: Contiene los datos de correo y contraseña.
-  /// - [emit]: Función para emitir nuevos estados.
-  ///
-  /// Emite [LoginLoading] durante el procesamiento y posteriormente
-  /// [LoginSuccess] o [LoginFailure] según el resultado del caso de uso.
+  /// Maneja el evento [LoginButtonPressed] y emite estados según el resultado.
   Future<void> _onLoginButtonPressed(
       LoginButtonPressed event, Emitter<LoginState> emit) async {
     emit(const LoginLoading());
     try {
-      // Llama al caso de uso para iniciar sesión con el correo y contraseña proporcionados.
       await loginUser(event.email, event.password);
       emit(const LoginSuccess());
     } catch (e) {
-      // En caso de error, emite el estado de fallo con el mensaje de error.
-      emit(LoginFailure(e.toString()));
+      final error = e.toString();
+      String friendlyError = error;
+      // Verifica si el error corresponde a credenciales inválidas.
+      if (error.contains("Usuario no encontrado") ||
+          error.contains("Contraseña incorrecta") ||
+          error.contains("incorrect, malformed or has expired")) {
+        friendlyError =
+        "El usuario o la contraseña son incorrectos. Por favor, inténtalo de nuevo.";
+      }
+      // Si el error es por falta de conexión.
+      else if (error.contains("A network error")) {
+        friendlyError =
+        "No se pudo conectar. Por favor, verifica tu conexión a internet.";
+      }
+      emit(LoginFailure(friendlyError));
     }
   }
 
-  /// Maneja el evento [RegisterButtonPressed] que se dispara al presionar el botón de registro.
-  /// - [event]: Contiene los datos de correo, contraseña y confirmación de contraseña.
-  /// - [emit]: Función para emitir nuevos estados.
-  ///
-  /// Emite [LoginLoading] durante el procesamiento y posteriormente
-  /// [LoginSuccess] o [LoginFailure] según el resultado del caso de uso.
+  /// Maneja el evento [RegisterButtonPressed] y emite estados según el resultado.
   Future<void> _onRegisterButtonPressed(
       RegisterButtonPressed event, Emitter<LoginState> emit) async {
     emit(const LoginLoading());
     try {
-      // Llama al caso de uso para registrar al usuario, validando que las contraseñas coincidan.
       await registerUser(
         event.email,
         event.password,
@@ -61,8 +56,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
       emit(const LoginSuccess());
     } catch (e) {
-      // En caso de error, emite el estado de fallo con el mensaje de error.
-      emit(LoginFailure(e.toString()));
+      final error = e.toString();
+      String friendlyError = error;
+      // Se puede aplicar la misma lógica para mensajes amigables.
+      if (error.contains("A network error")) {
+        friendlyError =
+        "No se pudo conectar. Por favor, verifica tu conexión a internet.";
+      }
+      emit(LoginFailure(friendlyError));
     }
   }
 }

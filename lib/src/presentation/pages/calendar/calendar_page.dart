@@ -1,3 +1,5 @@
+// lib/src/presentation/pages/calendar_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -5,17 +7,12 @@ import 'package:tempet/src/presentation/pages/search_page.dart';
 import 'package:tempet/src/presentation/widgets/event_info_panel.dart';
 import 'package:tempet/src/presentation/widgets/user_drawer.dart';
 import 'package:tempet/src/presentation/widgets/add_event_panel.dart';
-// Se elimina la importación de datos dummy
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tempet/src/presentation/blocs/add_event/evento_bloc.dart';
 import 'package:tempet/src/presentation/blocs/add_event/evento_state.dart';
 import 'package:tempet/src/domain/entities/evento.dart';
-
 import '../../blocs/add_event/evento_event.dart';
 import 'evento_calendar_datasource.dart';
-
-// Incluimos nuestro EventoCalendarDataSource (definido arriba)
-// Puedes ubicar la clase en un archivo aparte e importarla.
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -27,16 +24,16 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   CalendarView _calendarView = CalendarView.month;
   final CalendarController _calendarController = CalendarController();
-  // Centrado en la semana del 25 de feb de 2025
+  // Fecha inicial para centrar el calendario.
   DateTime _focusedDate = DateTime(2025, 2, 25);
 
   // Control para el mini menú de FAB.
   bool _isFabMenuExpanded = false;
   final PanelController _panelController = PanelController();
-  // Para el panel de agregar/editar evento (cuando se presionan los mini FABs)
+  // Variable para determinar el tipo de evento al agregar/editar.
   String? _addEventType;
-  // Para el panel de ver evento (cuando se toca un evento existente)
-  Evento? _selectedEvento; // Usamos Evento en lugar de Meeting
+  // Evento seleccionado para visualizar detalles.
+  Evento? _selectedEvento;
 
   @override
   void initState() {
@@ -59,11 +56,13 @@ class _CalendarPageState extends State<CalendarPage> {
       "Noviembre",
       "Diciembre"
     ];
-    return monthNames[month - 1];
+    return monthNames[month];
   }
 
   String get _formattedDate => _getMonthName(_focusedDate.month);
 
+
+  // callback para cambiar la vista del calendario.
   void _changeCalendarView(CalendarView view) {
     setState(() {
       _calendarView = view;
@@ -71,6 +70,8 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
+
+  // Método que se ejecuta cuando cambia la vista del calendario.
   void _onViewChanged(ViewChangedDetails details) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -81,7 +82,7 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  // Al pulsar el mini FAB de recordatorio para agregar
+  // Método para agregar un recordatorio.
   void _onAddReminder() {
     setState(() {
       _addEventType = "reminder";
@@ -91,7 +92,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _panelController.open();
   }
 
-  // Al pulsar el mini FAB de tarea para agregar
+  // Método para agregar una tarea.
   void _onAddTask() {
     setState(() {
       _addEventType = "task";
@@ -101,12 +102,12 @@ class _CalendarPageState extends State<CalendarPage> {
     _panelController.open();
   }
 
-  // Cuando se toca un evento existente, se muestra el panel en modo de visualización.
+  // Cuando se toca un evento en el calendario, se abre el panel para visualizarlo.
   void _onEventTap(CalendarTapDetails details) {
     if (details.appointments != null && details.appointments!.isNotEmpty) {
       setState(() {
         _selectedEvento = details.appointments!.first as Evento;
-        _addEventType = null; // Modo visualización
+        _addEventType = null; // Se establece en modo visualización.
       });
       _panelController.open();
     }
@@ -149,10 +150,15 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  // Se crea la ruta de búsqueda que inyecta el mismo EventoBloc en SearchPage.
+  // Esto permite que la SearchPage acceda a la lista de eventos ya cargados.
   Route _createSearchRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-      const SearchPage(),
+          BlocProvider.value(
+            value: BlocProvider.of<EventoBloc>(context),
+            child: const SearchPage(),
+          ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
@@ -179,13 +185,10 @@ class _CalendarPageState extends State<CalendarPage> {
         topLeft: Radius.circular(16),
         topRight: Radius.circular(16),
       ),
-      // Si hay un evento seleccionado y no estamos en modo edición, mostramos ViewEventPanel;
-      // de lo contrario, si _addEventType es no nulo, mostramos AddEventPanel (en modo agregar o editar).
-      // ... dentro del build() de CalendarPage
-
+      // Dependiendo de si hay un evento seleccionado o se está en modo agregar/editar,
+      // se muestra el panel correspondiente (ViewEventPanel o AddEventPanel).
       panel: _selectedEvento != null && _addEventType == null
           ? ViewEventPanel(
-        // Asegúrate de adaptar ViewEventPanel para que también trabaje con Evento.
         evento: _selectedEvento!,
         onClose: () {
           _panelController.close();
@@ -198,7 +201,9 @@ class _CalendarPageState extends State<CalendarPage> {
           Future.delayed(const Duration(milliseconds: 300), () {
             if (_selectedEvento != null) {
               setState(() {
-                _addEventType = _selectedEvento!.descripcion.toLowerCase().contains("recordatorio")
+                _addEventType = _selectedEvento!.descripcion
+                    .toLowerCase()
+                    .contains("recordatorio")
                     ? "reminder"
                     : "task";
               });
@@ -220,7 +225,7 @@ class _CalendarPageState extends State<CalendarPage> {
             _selectedEvento = null;
           });
         },
-        existingMeeting: _selectedEvento, // Ahora es de tipo Evento?
+        existingMeeting: _selectedEvento,
       )
           : Container()),
       onPanelClosed: () {
@@ -237,8 +242,26 @@ class _CalendarPageState extends State<CalendarPage> {
               actions: [
                 IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: () {
-                    Navigator.of(context).push(_createSearchRoute());
+                  onPressed: () async {
+                    // Al presionar el botón de búsqueda, se navega a SearchPage.
+                    // Se espera el resultado (un evento seleccionado) mediante await.
+                    final selectedEvent = await Navigator.of(context)
+                        .push(_createSearchRoute());
+                    // Si se selecciona un evento, se procede a:
+                    // 1. Asignar el evento a _selectedEvento.
+                    // 2. Actualizar el calendario para que se mueva a la fecha del evento.
+                    // 3. Abrir el panel de detalles.
+                    if (selectedEvent != null && selectedEvent is Evento) {
+                      setState(() {
+                        _selectedEvento = selectedEvent;
+                        _addEventType = null;
+                        // Se actualizan las propiedades del controlador del calendario para moverlo
+                        // a la fecha del evento seleccionado.
+                        _calendarController.displayDate = selectedEvent.fechaHora;
+                        _calendarController.selectedDate = selectedEvent.fechaHora;
+                      });
+                      _panelController.open();
+                    }
                   },
                 ),
               ],
@@ -263,14 +286,13 @@ class _CalendarPageState extends State<CalendarPage> {
                     monthViewSettings: const MonthViewSettings(
                       appointmentDisplayMode: MonthAppointmentDisplayMode.appointment,
                     ),
-                    // Usamos nuestro EventoCalendarDataSource con los eventos reales.
                     dataSource: EventoCalendarDataSource(state.eventos),
                     onTap: _onEventTap,
                   );
                 } else if (state is EventoFailure) {
                   return Center(child: Text("Error al cargar eventos: ${state.error}"));
                 } else {
-                  // En estado inicial, lanzamos el evento para cargar eventos y mostramos un indicador.
+                  // Si el estado es inicial, se lanza el evento para cargar los eventos.
                   context.read<EventoBloc>().add(const LoadEventos());
                   return const Center(child: CircularProgressIndicator());
                 }

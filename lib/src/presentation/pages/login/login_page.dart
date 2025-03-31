@@ -12,7 +12,6 @@ import 'package:tempet/src/presentation/theme/app_theme.dart';
 import 'package:lottie/lottie.dart';
 
 /// Widget que muestra el logo animado con efecto de rebote.
-/// Se utiliza un AnimationController para controlar la animación del logo.
 class AnimatedLogo extends StatefulWidget {
   const AnimatedLogo({Key? key}) : super(key: key);
 
@@ -25,7 +24,6 @@ class _AnimatedLogoState extends State<AnimatedLogo>
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  /// Inicializa el controlador y configura la animación.
   @override
   void initState() {
     super.initState();
@@ -36,7 +34,6 @@ class _AnimatedLogoState extends State<AnimatedLogo>
     _animation = Tween<double>(begin: 0.4, end: 1.5).animate(
       CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
     );
-    // Inicia la animación después de un breve retraso.
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         _controller.forward();
@@ -44,14 +41,12 @@ class _AnimatedLogoState extends State<AnimatedLogo>
     });
   }
 
-  /// Libera el controlador de animación para evitar fugas de memoria.
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
-  /// Construye el widget que muestra el logo escalado según la animación.
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(
@@ -65,12 +60,11 @@ class _AnimatedLogoState extends State<AnimatedLogo>
   }
 }
 
-/// Página de inicio de sesión que permite al usuario autenticarse.
-/// Se inyecta el [LoginBloc] con sus respectivos casos de uso de login y registro.
+/// Página de inicio de sesión.
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key}) : super(key: key);
 
-  /// Muestra un Snackbar de éxito cuando el login es exitoso.
+  /// Muestra un Snackbar de éxito.
   void _showSuccessSnackBar(BuildContext context) {
     final appColors = Theme.of(context).extension<AppColorsExtension>();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -105,6 +99,7 @@ class LoginPage extends StatelessWidget {
   /// Muestra un Snackbar de error con el mensaje recibido.
   void _showErrorSnackBar(BuildContext context, String error) {
     final appColors = Theme.of(context).extension<AppColorsExtension>();
+    print(error);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -134,21 +129,19 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  /// Construye la interfaz principal de la página de login.
-  /// Se utiliza [BlocProvider] para inyectar el [LoginBloc] y [BlocListener] y [BlocBuilder]
-  /// para reaccionar a los cambios de estado.
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => LoginBloc(
-        // Se inyectan los casos de uso para login y registro utilizando la implementación de Firebase.
+        // Se inyectan los casos de uso utilizando la implementación de Firebase.
         loginUser: LoginUser(FirebaseAuthRepositoryImpl()),
         registerUser: RegisterUser(FirebaseAuthRepositoryImpl()),
       ),
       child: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
           if (state is LoginFailure) {
-            _showErrorSnackBar(context, 'Error: ${state.error}');
+            // Se muestra directamente el mensaje de error amigable.
+            _showErrorSnackBar(context, state.error);
           } else if (state is LoginSuccess) {
             _showSuccessSnackBar(context);
             Navigator.pushReplacementNamed(context, '/calendar');
@@ -162,7 +155,7 @@ class LoginPage extends StatelessWidget {
               child: Scaffold(
                 body: Stack(
                   children: [
-                    // Fondo animado con Lottie que se adapta al tamaño del contenedor.
+                    // Fondo animado.
                     Positioned.fill(
                       child: Lottie.asset(
                         'assets/lottie/fondo.json',
@@ -170,13 +163,11 @@ class LoginPage extends StatelessWidget {
                       ),
                     ),
                     Center(
-                      // SingleChildScrollView permite desplazar el contenido en pantallas pequeñas para evitar overflow.
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: Container(
                           padding: const EdgeInsets.all(24.0),
                           decoration: BoxDecoration(
-                            // Fondo blanco semitransparente para resaltar el formulario.
                             color: Colors.white.withValues(alpha: 0.65),
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: const [
@@ -190,10 +181,8 @@ class LoginPage extends StatelessWidget {
                           child: const Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Muestra el logo animado.
                               AnimatedLogo(),
                               SizedBox(height: 24),
-                              // Incluye el formulario de login.
                               _LoginForm(),
                             ],
                           ),
@@ -211,7 +200,7 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-/// Formulario de inicio de sesión que captura el correo y la contraseña del usuario.
+/// Formulario de inicio de sesión.
 class _LoginForm extends StatefulWidget {
   const _LoginForm({Key? key}) : super(key: key);
 
@@ -225,7 +214,6 @@ class _LoginFormState extends State<_LoginForm> {
   late final TextEditingController _passwordController;
   bool _showPassword = false;
 
-  /// Inicializa los controladores para los campos de texto.
   @override
   void initState() {
     super.initState();
@@ -233,7 +221,6 @@ class _LoginFormState extends State<_LoginForm> {
     _passwordController = TextEditingController();
   }
 
-  /// Libera los controladores para evitar fugas de memoria.
   @override
   void dispose() {
     _emailController.dispose();
@@ -241,15 +228,12 @@ class _LoginFormState extends State<_LoginForm> {
     super.dispose();
   }
 
-  /// Construye el formulario de login, que incluye campos para correo y contraseña,
-  /// y un botón para disparar el evento de inicio de sesión.
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
       child: Column(
         children: [
-          // Campo de texto para ingresar el correo electrónico.
           TextFormField(
             controller: _emailController,
             decoration: const InputDecoration(
@@ -260,20 +244,19 @@ class _LoginFormState extends State<_LoginForm> {
               if (value == null || value.isEmpty) {
                 return 'Por favor, ingrese su correo';
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                  .hasMatch(value)) {
                 return 'Ingrese un correo válido';
               }
               return null;
             },
           ),
           const SizedBox(height: 16),
-          // Campo de texto para ingresar la contraseña.
           TextFormField(
             controller: _passwordController,
             decoration: InputDecoration(
               labelText: 'Contraseña',
               prefixIcon: const Icon(Icons.lock),
-              // Botón para alternar la visibilidad de la contraseña.
               suffixIcon: GestureDetector(
                 onTap: () {
                   setState(() {
@@ -297,15 +280,12 @@ class _LoginFormState extends State<_LoginForm> {
             },
           ),
           const SizedBox(height: 24),
-          // Botón que envía el formulario y dispara el evento de login.
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                // Oculta el teclado al presionar el botón.
                 FocusScope.of(context).unfocus();
                 if (_formKey.currentState?.validate() ?? false) {
-                  // Dispara el evento de login con los datos ingresados.
                   context.read<LoginBloc>().add(
                     LoginButtonPressed(
                       email: _emailController.text,
@@ -321,7 +301,6 @@ class _LoginFormState extends State<_LoginForm> {
             ),
           ),
           const SizedBox(height: 16),
-          // Botón para navegar a la página de registro.
           TextButton(
             onPressed: () {
               Navigator.pushReplacementNamed(context, '/register');
