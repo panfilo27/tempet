@@ -10,6 +10,8 @@ import 'src/data/datasources/remote/evento_firestore_datasource.dart';
 import 'src/data/repositories/evento_repository_impl.dart';
 import 'src/domain/usecases/agregar_evento_usecase.dart';
 import 'src/domain/usecases/get_eventos_usecase.dart';
+import 'src/domain/usecases/update_evento_usecase.dart';
+import 'src/domain/usecases/delete_evento_usecase.dart';
 import 'src/presentation/blocs/add_event/evento_bloc.dart';
 
 void main() async {
@@ -22,16 +24,16 @@ void main() async {
 
 /// [MyApp] es el widget principal de la aplicación.
 /// Se inyectan las dependencias necesarias, incluyendo el [EventoBloc]
-/// para gestionar la adición y carga de eventos.
+/// para gestionar la adición, actualización, eliminación y carga de eventos.
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Creación de la instancia del datasource remoto para eventos.
+    // Instancia del datasource remoto para eventos.
     final eventoFirestoreDatasource = EventoFirestoreDatasource();
 
-    // Creación del repositorio de eventos usando el datasource remoto.
+    // Instancia del repositorio de eventos usando el datasource remoto.
     final eventoRepository = EventoRepositoryImpl(remoteDatasource: eventoFirestoreDatasource);
 
     // Creación del caso de uso para agregar eventos.
@@ -40,13 +42,21 @@ class MyApp extends StatelessWidget {
     // Creación del caso de uso para cargar eventos.
     final getEventosUseCase = GetEventosUseCase(eventoRepository);
 
+    // Creación del caso de uso para actualizar eventos.
+    final updateEventoUseCase = UpdateEventoUseCase(eventoRepository);
+
+    // Creación del caso de uso para eliminar eventos.
+    final deleteEventoUseCase = DeleteEventoUseCase(eventoRepository);
+
     return MultiBlocProvider(
       providers: [
-        // Inyección del EventoBloc con ambos casos de uso.
+        // Inyección del EventoBloc con todos los casos de uso.
         BlocProvider<EventoBloc>(
           create: (_) => EventoBloc(
             agregarEventoUseCase: agregarEventoUseCase,
             getEventosUseCase: getEventosUseCase,
+            updateEventoUseCase: updateEventoUseCase,
+            deleteEventoUseCase: deleteEventoUseCase,
           ),
         ),
         // Aquí podrías agregar otros BlocProviders si fuera necesario.

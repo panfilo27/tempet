@@ -32,7 +32,6 @@ class ViewEventPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Se determina si el evento es un recordatorio en función de su descripción.
-    // Ajusta esta lógica según las propiedades de tu entidad Evento.
     bool isReminder = evento.descripcion.toLowerCase().contains("recordatorio");
 
     // Se utiliza la propiedad fechaHora como inicio.
@@ -70,8 +69,10 @@ class ViewEventPanel extends StatelessWidget {
                   icon: const Icon(Icons.more_vert),
                   onSelected: (value) {
                     if (value == 'edit') {
+                      // Se delega la acción de editar sin cerrar el panel aquí.
                       onEdit();
                     } else if (value == 'delete') {
+                      // Se delega la acción de borrar sin cerrar el panel aquí.
                       onDelete();
                     }
                   },
@@ -119,7 +120,7 @@ class ViewEventPanel extends StatelessWidget {
             ),
           ),
           const Divider(),
-          // Información de la descripción (aquí se muestra "Sin descripción" por defecto).
+          // Información de la descripción (por defecto "Sin descripción").
           ListTile(
             title: const Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: const Text('Sin descripción'),

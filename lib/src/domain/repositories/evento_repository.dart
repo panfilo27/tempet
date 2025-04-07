@@ -9,4 +9,8 @@ abstract class EventoRepository {
 
   /// Recupera la lista de eventos.
   Future<List<Evento>> getEventos();
+  /// Elimina un evento por su ID.
+  Future<void> deleteEvento(String idEvento);
+  /// Actualiza un evento existente.
+  Future<void> updateEvento(Evento evento);
 }

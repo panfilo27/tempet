@@ -22,5 +22,14 @@ class EventoRepositoryImpl implements EventoRepository {
   Future<List<Evento>> getEventos() async {
     return await remoteDatasource.getEventos();
   }
+
+  @override
+  Future<void> deleteEvento(String idEvento) async {
+    return remoteDatasource.deleteEvento(idEvento);
+  }
+  @override
+  Future<void> updateEvento(Evento evento) async {
+    return remoteDatasource.updateEvento(evento);
+  }
 }
 

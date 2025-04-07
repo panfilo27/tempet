@@ -334,24 +334,29 @@ class _AddEventPanelState extends State<AddEventPanel>
   /// Función que crea el objeto [Evento] y lo envía al Bloc para agregarlo.
   void _submitEvent() {
     if (_titleController.text.trim().isEmpty) return;
-    final newEvent = Evento(
-      idEvento: DateTime.now().millisecondsSinceEpoch.toString(),
+
+    // Se define la fecha/hora en función del tipo de evento.
+    final eventDateTime = widget.eventType == "task"
+        ? DateTime(
+      _taskDate.year,
+      _taskDate.month,
+      _taskDate.day,
+      _taskTime.hour,
+      _taskTime.minute,
+    )
+        : DateTime(
+      _reminderStartDate.year,
+      _reminderStartDate.month,
+      _reminderStartDate.day,
+      _reminderStartTime.hour,
+      _reminderStartTime.minute,
+    );
+
+    // Se crea el objeto Evento, reutilizando el id si se trata de una edición.
+    final evento = Evento(
+      idEvento: widget.existingMeeting?.idEvento ?? DateTime.now().millisecondsSinceEpoch.toString(),
       descripcion: _titleController.text,
-      fechaHora: widget.eventType == "task"
-          ? DateTime(
-        _taskDate.year,
-        _taskDate.month,
-        _taskDate.day,
-        _taskTime.hour,
-        _taskTime.minute,
-      )
-          : DateTime(
-        _reminderStartDate.year,
-        _reminderStartDate.month,
-        _reminderStartDate.day,
-        _reminderStartTime.hour,
-        _reminderStartTime.minute,
-      ),
+      fechaHora: eventDateTime,
       repetir: widget.eventType == "reminder" ? "diario" : "semanal",
       estado: "pendiente",
       notificaciones: [],
@@ -362,8 +367,13 @@ class _AddEventPanelState extends State<AddEventPanel>
       ),
     );
 
-    // Despacha el evento al Bloc (se asume que el Bloc ya está inyectado en el árbol).
-    context.read<EventoBloc>().add(AddEventoButtonPressed(event: newEvent));
+    if (widget.existingMeeting != null) {
+      // Se actualiza el evento existente.
+      context.read<EventoBloc>().add(UpdateEventoButtonPressed(event: evento));
+    } else {
+      // Se agrega un nuevo evento.
+      context.read<EventoBloc>().add(AddEventoButtonPressed(event: evento));
+    }
 
     widget.onClose();
   }

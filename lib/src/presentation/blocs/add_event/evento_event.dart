@@ -23,3 +23,23 @@ class AddEventoButtonPressed extends EventoEvent {
 class LoadEventos extends EventoEvent {
   const LoadEventos();
 }
+
+/// Evento para actualizar un evento existente.
+class UpdateEventoButtonPressed extends EventoEvent {
+  final Evento event;
+
+  const UpdateEventoButtonPressed({required this.event});
+
+  @override
+  List<Object?> get props => [event];
+}
+
+/// Evento para eliminar un evento.
+class DeleteEventoButtonPressed extends EventoEvent {
+  final String idEvento;
+
+  const DeleteEventoButtonPressed({required this.idEvento});
+
+  @override
+  List<Object?> get props => [idEvento];
+}

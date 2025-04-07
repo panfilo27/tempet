@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:tempet/src/presentation/pages/search_page.dart';
-import 'package:tempet/src/presentation/widgets/event_info_panel.dart';
+import 'package:tempet/src/presentation/widgets/view_event_panel.dart';
 import 'package:tempet/src/presentation/widgets/user_drawer.dart';
 import 'package:tempet/src/presentation/widgets/add_event_panel.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -212,7 +212,32 @@ class _CalendarPageState extends State<CalendarPage> {
           });
         },
         onDelete: () {
-          // Lógica para borrar el evento.
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text("Confirmar eliminación"),
+              content: const Text("¿Estás seguro de eliminar este evento?"),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(), // Cancelar
+                  child: const Text("Cancelar"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    context.read<EventoBloc>().add(
+                      DeleteEventoButtonPressed(idEvento: _selectedEvento!.idEvento),
+                    );
+                    Navigator.of(context).pop(); // Cierra el diálogo
+                    _panelController.close(); // Cierra el panel
+                    setState(() {
+                      _selectedEvento = null;
+                    });
+                  },
+                  child: const Text("Eliminar"),
+                ),
+              ],
+            ),
+          );
         },
       )
           : (_addEventType != null

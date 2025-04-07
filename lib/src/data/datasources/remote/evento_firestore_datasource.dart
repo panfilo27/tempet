@@ -40,4 +40,29 @@ class EventoFirestoreDatasource {
       rethrow;
     }
   }
+
+  /// Elimina un evento de la colección "eventos" en Firestore.
+  Future<void> deleteEvento(String idEvento) async {
+    print('Eliminando evento de Firestore: $idEvento');
+    try {
+      await firestore.collection('eventos').doc(idEvento).delete();
+      print('Evento eliminado exitosamente: $idEvento');
+    } catch (e) {
+      print('Error al eliminar evento: $e');
+      rethrow;
+    }
+  }
+
+  /// Actualiza un evento existente en la colección "eventos" en Firestore.
+  Future<void> updateEvento(Evento evento) async {
+    print('Actualizando evento en Firestore: ${evento.idEvento}');
+    try {
+      await firestore.collection('eventos').doc(evento.idEvento).update(evento.toMap());
+      print('Evento actualizado exitosamente: ${evento.idEvento}');
+    } catch (e) {
+      print('Error al actualizar evento: $e');
+      rethrow;
+    }
+  }
+
 }
