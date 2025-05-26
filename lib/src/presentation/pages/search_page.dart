@@ -14,35 +14,34 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  // Controlador para el campo de búsqueda.
   final TextEditingController _searchController = TextEditingController();
-  // Lista local para almacenar y filtrar los eventos.
+  final FocusNode _searchFocusNode = FocusNode();
   List<Evento> _filteredEvents = [];
 
   @override
   void initState() {
     super.initState();
-    // Inicializamos la lista filtrada con todos los eventos cargados por el Bloc.
-    // Esto permite que, antes de cualquier búsqueda, se muestren todos los eventos.
     final state = context.read<EventoBloc>().state;
     if (state is EventoLoaded) {
       _filteredEvents = state.eventos;
     }
-    // Se agrega un listener para detectar cambios en el campo de búsqueda.
     _searchController.addListener(_onSearchChanged);
+
+    // Abrir teclado automáticamente
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).requestFocus(_searchFocusNode);
+    });
   }
 
-  // Método que se ejecuta cada vez que cambia el texto en el campo de búsqueda.
   void _onSearchChanged() {
-    // Convertimos el texto a minúsculas para hacer una búsqueda case-insensitive.
     final query = _searchController.text.toLowerCase();
     final state = context.read<EventoBloc>().state;
     if (state is EventoLoaded) {
       setState(() {
-        // Se filtra la lista de eventos usando la propiedad 'descripcion'.
-        // Si la descripción contiene el texto ingresado, se incluye en la lista filtrada.
         _filteredEvents = state.eventos.where((evento) {
-          return evento.descripcion.toLowerCase().contains(query);
+          final title = evento.titulo.toLowerCase();
+          final details = evento.detalles.toLowerCase();
+          return title.contains(query) || details.contains(query);
         }).toList();
       });
     }
@@ -50,9 +49,9 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   void dispose() {
-    // Se remueve el listener y se libera el controlador para evitar fugas de memoria.
     _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -60,45 +59,42 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Buscar Evento'),
-      ),
-      body: Column(
-        children: [
-          // Campo de búsqueda con diseño personalizado.
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por descripción...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-              ),
-            ),
+        // Buscador en el AppBar
+        title: TextField(
+          controller: _searchController,
+          focusNode: _searchFocusNode,
+          autofocus: true,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+          decoration: const InputDecoration(
+            hintText: 'Buscar',
+            hintStyle: TextStyle(color: Colors.white60),
+            border: InputBorder.none,
           ),
-          // Muestra la lista de eventos filtrados.
-          Expanded(
-            child: _filteredEvents.isEmpty
-                ? const Center(child: Text('No se encontraron eventos'))
-                : ListView.builder(
-              itemCount: _filteredEvents.length,
-              itemBuilder: (context, index) {
-                final evento = _filteredEvents[index];
-                return ListTile(
-                  // Se muestra la descripción del evento.
-                  title: Text(evento.descripcion),
-                  onTap: () {
-                    // Al seleccionar un evento, se regresa este evento a la CalendarPage.
-                    // Esto se hace con Navigator.pop(context, evento);
-                    Navigator.pop(context, evento);
-                  },
-                );
+        ),
+        actions: [
+          if (_searchController.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                _searchController.clear();
               },
             ),
-          ),
         ],
+      ),
+      body: _filteredEvents.isEmpty
+          ? const Center(child: Text('No se encontraron eventos'))
+          : ListView.builder(
+        itemCount: _filteredEvents.length,
+        itemBuilder: (context, index) {
+          final evento = _filteredEvents[index];
+          return ListTile(
+            title: Text(evento.titulo),
+            subtitle: evento.detalles.isNotEmpty
+                ? Text(evento.detalles)
+                : null,
+            onTap: () => Navigator.pop(context, evento),
+          );
+        },
       ),
     );
   }

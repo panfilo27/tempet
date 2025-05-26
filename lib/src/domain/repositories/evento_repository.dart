@@ -13,4 +13,7 @@ abstract class EventoRepository {
   Future<void> deleteEvento(String idEvento);
   /// Actualiza un evento existente.
   Future<void> updateEvento(Evento evento);
+
+  /// Actualiza el estado de una tarea.
+  Future<void> updateEstadoTarea(String idEvento, String nuevoEstado);
 }

@@ -43,3 +43,14 @@ class DeleteEventoButtonPressed extends EventoEvent {
   @override
   List<Object?> get props => [idEvento];
 }
+
+/// Evento para cambiar el estado de una tarea.
+class CambiarEstadoTarea extends EventoEvent {
+  final String idEvento;
+  final String nuevoEstado;
+
+  const CambiarEstadoTarea({required this.idEvento, required this.nuevoEstado});
+
+  @override
+  List<Object?> get props => [idEvento, nuevoEstado];
+}

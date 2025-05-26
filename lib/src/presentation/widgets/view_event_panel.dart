@@ -1,10 +1,14 @@
 // lib/src/presentation/widgets/view_event_panel.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:tempet/src/domain/entities/evento.dart';
+import 'package:tempet/src/presentation/blocs/add_event/evento_bloc.dart';
+import 'package:tempet/src/presentation/blocs/add_event/evento_event.dart';
 
-/// Panel que muestra la información de un evento y permite editar o borrarlo.
+/// Panel que muestra la información de un evento (tarea o recordatorio)
+/// y permite editarlo o borrarlo.
 class ViewEventPanel extends StatelessWidget {
   final Evento evento;
   final VoidCallback onClose;
@@ -19,34 +23,23 @@ class ViewEventPanel extends StatelessWidget {
     required this.onDelete,
   }) : super(key: key);
 
-  /// Formatea una fecha según el formato 'EEEE, d MMMM y' en español.
-  String _formatDate(DateTime date) {
-    return DateFormat('EEEE, d MMMM y', 'es_ES').format(date);
-  }
-
-  /// Formatea una hora según el formato 'HH:mm'.
-  String _formatTime(DateTime date) {
-    return DateFormat('HH:mm').format(date);
-  }
+  String _formatDate(DateTime d) =>
+      DateFormat('EEEE, d MMMM y', 'es_ES').format(d);
+  String _formatTime(DateTime d) => DateFormat('HH:mm').format(d);
 
   @override
   Widget build(BuildContext context) {
-    // Se determina si el evento es un recordatorio en función de su descripción.
-    bool isReminder = evento.descripcion.toLowerCase().contains("recordatorio");
-
-    // Se utiliza la propiedad fechaHora como inicio.
-    DateTime start = evento.fechaHora;
-    // Para el fin, en este ejemplo asumimos una duración fija de 1 hora si es recordatorio.
-    DateTime end = isReminder ? evento.fechaHora.add(const Duration(hours: 1)) : evento.fechaHora;
-    // Para el color, usamos un color fijo; si tu entidad tiene una propiedad para ello, utilízala.
-    Color color = Colors.blue;
+    final bool isReminder = evento.recordatorio.repetir.isNotEmpty;
+    final DateTime start  = evento.fechaInicio;
+    final DateTime end    = evento.fechaFin;
+    final Color color     = Color(evento.color);
 
     return Material(
       color: Colors.white,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle superior con menú de opciones.
+          // Barra superior
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             height: 40,
@@ -67,64 +60,80 @@ class ViewEventPanel extends StatelessWidget {
                 const Spacer(),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      // Se delega la acción de editar sin cerrar el panel aquí.
-                      onEdit();
-                    } else if (value == 'delete') {
-                      // Se delega la acción de borrar sin cerrar el panel aquí.
-                      onDelete();
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Text('Editar'),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Text('Borrar'),
-                    ),
+                  onSelected: (v) =>
+                  v == 'edit' ? onEdit() : onDelete(),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'edit',   child: Text('Editar')),
+                    PopupMenuItem(value: 'delete', child: Text('Borrar')),
                   ],
                 ),
               ],
             ),
           ),
           const Divider(),
-          // Información del título.
+
+          // Título
           ListTile(
-            title: const Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text(evento.descripcion),
+            title   : const Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(evento.titulo),
           ),
           const Divider(),
-          // Información de la fecha y hora de inicio.
+
+          // Detalles
           ListTile(
-            title: const Text('Inicio', style: TextStyle(fontWeight: FontWeight.bold)),
+            title   : const Text('Detalles', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(evento.detalles.isNotEmpty ? evento.detalles : 'Sin detalles'),
+          ),
+          const Divider(),
+
+          // Inicio
+          ListTile(
+            title   : const Text('Inicio', style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text('${_formatDate(start)} - ${_formatTime(start)}'),
           ),
-          // Si es recordatorio, mostramos también la fecha y hora de fin.
+
+          // Fin (solo recordatorio)
           if (isReminder) ...[
             const Divider(),
             ListTile(
-              title: const Text('Fin', style: TextStyle(fontWeight: FontWeight.bold)),
+              title   : const Text('Fin', style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text('${_formatDate(end)} - ${_formatTime(end)}'),
             ),
           ],
           const Divider(),
-          // Información del color.
+
+          // Color
           ListTile(
-            title: const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
-            trailing: CircleAvatar(
-              backgroundColor: color,
-              radius: 16,
-            ),
+            title   : const Text('Color', style: TextStyle(fontWeight: FontWeight.bold)),
+            trailing: CircleAvatar(backgroundColor: color, radius: 16),
           ),
           const Divider(),
-          // Información de la descripción (por defecto "Sin descripción").
-          ListTile(
-            title: const Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: const Text('Sin descripción'),
-          ),
+
+          // Repetir o Estado
+          if (isReminder) ...[
+            ListTile(
+              title   : const Text('Repetir', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(evento.recordatorio.repetir),
+            ),
+          ] else ...[
+            ListTile(
+              title: const Text('Estado', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: evento.tarea.estado == 'pendiente'
+                  ? ElevatedButton(
+                onPressed: () {
+                  context.read<EventoBloc>().add(
+                    CambiarEstadoTarea(
+                      idEvento: evento.idEvento,
+                      nuevoEstado: 'completada',
+                    ),
+                  );
+                  onClose();
+                },
+                child: const Text('Marcar como completada'),
+              )
+                  : Text(evento.tarea.estado),
+            ),
+          ],
         ],
       ),
     );

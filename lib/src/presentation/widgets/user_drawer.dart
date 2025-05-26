@@ -1,6 +1,9 @@
+// lib/src/presentation/widgets/user_drawer.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
-import 'package:tempet/src/presentation/pages/user/user_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tempet/src/domain/usecases/auth_usecases.dart';
 
 class UserDrawer extends StatelessWidget {
   final Function(CalendarView) onViewChange;
@@ -9,22 +12,30 @@ class UserDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Caso de uso para obtener el usuario actual
+    final User? user = context.read<GetCurrentUser>()();
+
+    // Correo e iniciales
+    final String email = user?.email ?? 'usuario@example.com';
+    final String initials =
+    email.isNotEmpty ? email.substring(0, 2).toUpperCase() : 'US';
+
+    // Si quieres un “nombre” toma lo que está antes de la arroba
+    final String name = email.split('@').first;
+
     return Drawer(
       child: ListView(
         children: [
           UserAccountsDrawerHeader(
-            accountName: const Text("Juan Pérez"),
-            accountEmail: const Text("juanperez@example.com"),
+            accountName : Text(name),
+            accountEmail: Text(email),
             currentAccountPicture: InkWell(
-              onTap: () {
-                // Navega a la pantalla de datos del usuario
-                Navigator.pushNamed(context, '/userData');
-              },
-              child: const CircleAvatar(
+              onTap: () => Navigator.pushNamed(context, '/userData'),
+              child: CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Text(
-                  "JP",
-                  style: TextStyle(fontSize: 24, color: Colors.blue),
+                  initials,
+                  style: const TextStyle(fontSize: 24, color: Colors.blue),
                 ),
               ),
             ),

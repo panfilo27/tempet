@@ -66,4 +66,12 @@ class FirebaseAuthRepositoryImpl implements AuthRepository {
       }
     }
   }
+
+  // ───────────── logout ─────────────
+  @override
+  Future<void> logout() async => firebaseAuth.signOut();
+
+  // ───────────── usuario actual ─────────────
+  @override
+  User? get currentUser => firebaseAuth.currentUser;
 }

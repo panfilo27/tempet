@@ -1,5 +1,7 @@
 // lib/src/domain/usecases/auth_usecases.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
+
 import '../repositories/auth_repository.dart';
 
 /// Caso de uso para iniciar sesión.
@@ -41,4 +43,16 @@ class RegisterUser {
     }
     await repository.register(email, password);
   }
+}
+
+class LogoutUser {
+  final AuthRepository repository;
+  LogoutUser(this.repository);
+  Future<void> call() => repository.logout();
+}
+
+class GetCurrentUser {
+  final AuthRepository repository;
+  GetCurrentUser(this.repository);
+  User? call() => repository.currentUser;
 }
